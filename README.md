@@ -11,7 +11,7 @@ The Water Cooler Network is a digital platform that recreates informal professio
 - Analytics for HR
 
 ## Tech Stack (Planned)
-- Backend: TBD (Spring Boot / Node.js / NestJS)
+- Backend: Spring Boot
 - Frontend: React
 - Mobile: React Native (future)
 - Database: PostgreSQL
