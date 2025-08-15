@@ -2,11 +2,15 @@
 
 A digital platform that recreates informal professional networking for remote and hybrid workers through instant "Coffee Chat" matches, topic lounges, gamification, and private corporate spaces.
 
-## 🚀 Current Status: Core Backend Complete
+## 🚀 Current Status: Component 3 Complete!
 
-**Component 1: Core Backend** ✅ **COMPLETED**
+**Component 1: Core Backend** ✅ **COMPLETED**  
+**Component 2: Coffee Chat Matching + Video Chat** ✅ **COMPLETED**  
+**Component 3: Topic Lounges** ✅ **COMPLETED**
 
 ### What's Built
+
+**Component 1: Core Backend**
 
 -   **User Authentication & Authorization**: JWT-based security with role-based access control
 -   **User Management**: Complete CRUD operations for user profiles
@@ -15,6 +19,24 @@ A digital platform that recreates informal professional networking for remote an
 -   **RESTful API**: Authentication and user management endpoints
 -   **Frontend Foundation**: React-based UI with authentication flows
 -   **Modern UI/UX**: Clean, responsive design with professional styling
+
+**Component 2: Coffee Chat Matching + Video Chat**
+
+-   **Matching System**: Intelligent algorithm based on industry, skills, and interests
+-   **Match Management**: Request, accept, reject, and schedule coffee chats
+-   **User Preferences**: Customizable matching criteria and availability
+-   **Chat History**: Complete conversation logging and management
+-   **Frontend Components**: Match discovery, management, and preferences
+-   **WebSocket Ready**: Infrastructure for real-time communication
+
+**Component 3: Topic Lounges**
+
+-   **Lounge System**: Topic-based conversation spaces with customizable settings
+-   **Real-time Messaging**: Live chat with reply threads and system messages
+-   **Participation Management**: Join/leave lounges with role-based access
+-   **Search & Discovery**: Find lounges by topic, category, or keywords
+-   **Frontend Interface**: Complete lounge discovery, creation, and chat experience
+-   **Modern UI/UX**: Beautiful, responsive design with professional styling
 
 ### Backend Features
 
@@ -49,6 +71,32 @@ A digital platform that recreates informal professional networking for remote an
 -   `GET /api/users/industry/{industry}` - Get users by industry
 -   `GET /api/users/all` - Get all users (Admin only)
 -   `DELETE /api/users/{userId}` - Deactivate user (Admin only)
+
+#### Coffee Chat Matching
+
+-   `POST /api/matches/request` - Create match request
+-   `POST /api/matches/{matchId}/respond` - Respond to match request
+-   `GET /api/matches/available` - Get available matches
+-   `GET /api/matches/my-matches` - Get user's matches
+-   `GET /api/matches/my-matches/{status}` - Get matches by status
+-   `GET /api/matches/preferences` - Get user preferences
+-   `PUT /api/matches/preferences` - Update user preferences
+
+#### Topic Lounges
+
+-   `POST /api/lounges` - Create new lounge
+-   `GET /api/lounges` - Get all lounges
+-   `GET /api/lounges/{loungeId}` - Get lounge by ID
+-   `GET /api/lounges/search?q={query}` - Search lounges
+-   `GET /api/lounges/topic/{topic}` - Get lounges by topic
+-   `GET /api/lounges/category/{category}` - Get lounges by category
+-   `GET /api/lounges/featured` - Get featured lounges
+-   `GET /api/lounges/user` - Get user's lounges
+-   `POST /api/lounges/{loungeId}/join` - Join lounge
+-   `POST /api/lounges/{loungeId}/leave` - Leave lounge
+-   `GET /api/lounges/{loungeId}/messages` - Get lounge messages
+-   `POST /api/lounges/{loungeId}/messages` - Send message to lounge
+-   `DELETE /api/lounges/{loungeId}` - Delete lounge (Creator only)
 
 ## 🛠️ Technology Stack
 
@@ -164,6 +212,106 @@ CREATE TABLE companies (
 );
 ```
 
+### Matches Table
+
+```sql
+CREATE TABLE matches (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user1_id BIGINT NOT NULL,
+    user2_id BIGINT NOT NULL,
+    match_type VARCHAR(20) NOT NULL DEFAULT 'COFFEE_CHAT',
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    match_time TIMESTAMP,
+    scheduled_time TIMESTAMP,
+    duration_minutes INTEGER DEFAULT 30,
+    compatibility_score DOUBLE,
+    match_reason TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### User Preferences Table
+
+```sql
+CREATE TABLE user_preferences (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
+    preferred_industries TEXT,
+    preferred_roles TEXT,
+    preferred_experience_level VARCHAR(20),
+    max_match_distance_km INTEGER,
+    preferred_chat_duration INTEGER DEFAULT 30,
+    availability_start_time VARCHAR(5),
+    availability_end_time VARCHAR(5),
+    preferred_timezone VARCHAR(50),
+    is_available_for_matching BOOLEAN NOT NULL DEFAULT TRUE,
+    auto_accept_matches BOOLEAN NOT NULL DEFAULT FALSE,
+    notification_preferences TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### Lounges Table
+
+```sql
+CREATE TABLE lounges (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    topic VARCHAR(100) NOT NULL,
+    category VARCHAR(100),
+    tags TEXT,
+    created_by BIGINT NOT NULL,
+    visibility VARCHAR(20) NOT NULL DEFAULT 'PUBLIC',
+    max_participants INTEGER,
+    current_participants INTEGER DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_featured BOOLEAN DEFAULT FALSE,
+    last_activity TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### Lounge Messages Table
+
+```sql
+CREATE TABLE lounge_messages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    lounge_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    message_type VARCHAR(20) NOT NULL DEFAULT 'TEXT',
+    reply_to_message_id BIGINT,
+    is_edited BOOLEAN DEFAULT FALSE,
+    edited_at TIMESTAMP,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Lounge Participants Table
+
+```sql
+CREATE TABLE lounge_participants (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    lounge_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
+    joined_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_activity TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_muted BOOLEAN DEFAULT FALSE,
+    muted_until TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
 ## 🔐 Security Features
 
 -   **JWT Authentication**: Stateless token-based authentication
@@ -223,14 +371,15 @@ water-cooler-network/
 
 ## 🔄 Next Steps
 
-The Core Backend is now complete and ready for the next component:
+Components 1-3 are now complete and ready for the next phase:
 
-**Component 2: Coffee Chat Matching + Video Chat** (Next in sequence)
+**Component 4: Gamification (Streaks, Badges)** (Next in sequence)
 
--   Real-time matching algorithms
--   WebRTC video chat integration
--   Match preferences and filters
--   Chat history and scheduling
+-   Achievement system for active participation
+-   Streak tracking for consistent engagement
+-   Badge rewards for various activities
+-   Leaderboards and progress tracking
+-   Points system and gamified elements
 
 ## 🤝 Contributing
 
@@ -249,6 +398,6 @@ For questions or issues related to the Core Backend:
 
 ---
 
-**Status**: ✅ Core Backend Complete  
-**Next Component**: Coffee Chat Matching + Video Chat  
-**Build Order**: 1 of 10 components completed
+**Status**: ✅ Components 1-3 Complete  
+**Next Component**: Gamification (Streaks, Badges)  
+**Build Order**: 3 of 10 components completed

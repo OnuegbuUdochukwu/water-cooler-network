@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import "./Dashboard.css";
 
@@ -74,12 +75,18 @@ const Dashboard: React.FC = () => {
                         <button className="btn btn-primary">
                             Update Profile
                         </button>
-                        <button className="btn btn-secondary">
+                        <Link to="/matches" className="btn btn-secondary">
                             Find Matches
-                        </button>
-                        <button className="btn btn-secondary">
+                        </Link>
+                        <Link to="/my-matches" className="btn btn-secondary">
                             My Matches
-                        </button>
+                        </Link>
+                        <Link to="/lounges" className="btn btn-secondary">
+                            Browse Lounges
+                        </Link>
+                        <Link to="/lounges/create" className="btn btn-primary">
+                            Create Lounge
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -13,6 +13,9 @@ import Profile from "./components/profile/Profile";
 import Dashboard from "./components/dashboard/Dashboard";
 import MatchFinder from "./components/matching/MatchFinder";
 import MyMatches from "./components/matching/MyMatches";
+import LoungeDiscovery from "./components/lounges/LoungeDiscovery";
+import CreateLounge from "./components/lounges/CreateLounge";
+import LoungeChat from "./components/lounges/LoungeChat";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -54,6 +57,30 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <MyMatches />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/lounges"
+                                element={
+                                    <ProtectedRoute>
+                                        <LoungeDiscovery />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/lounges/create"
+                                element={
+                                    <ProtectedRoute>
+                                        <CreateLounge />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/lounges/:loungeId"
+                                element={
+                                    <ProtectedRoute>
+                                        <LoungeChat />
                                     </ProtectedRoute>
                                 }
                             />

@@ -32,6 +32,9 @@ const Navbar: React.FC = () => {
                         <Link to="/my-matches" className="navbar-item">
                             My Matches
                         </Link>
+                        <Link to="/lounges" className="navbar-item">
+                            Topic Lounges
+                        </Link>
                         <Link to="/profile" className="navbar-item">
                             Profile
                         </Link>
