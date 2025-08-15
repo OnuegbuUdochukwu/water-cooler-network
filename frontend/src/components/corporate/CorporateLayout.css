@@ -1,0 +1,17 @@
+.corporate-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.corporate-content {
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .corporate-layout {
+        padding: 16px;
+    }
+}

@@ -17,6 +17,12 @@ import LoungeDiscovery from "./components/lounges/LoungeDiscovery";
 import CreateLounge from "./components/lounges/CreateLounge";
 import LoungeChat from "./components/lounges/LoungeChat";
 import AchievementsDashboard from "./components/gamification/AchievementsDashboard";
+import CompanyDashboard from "./components/corporate/CompanyDashboard";
+import DepartmentManagement from "./components/corporate/DepartmentManagement";
+import InvitationManagement from "./components/corporate/InvitationManagement";
+import CompanySettings from "./components/corporate/CompanySettings";
+import CompanyAnnouncements from "./components/corporate/CompanyAnnouncements";
+import EmployeeDirectory from "./components/corporate/EmployeeDirectory";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -90,6 +96,54 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <AchievementsDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/corporate"
+                                element={
+                                    <ProtectedRoute>
+                                        <CompanyDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/corporate/departments"
+                                element={
+                                    <ProtectedRoute>
+                                        <DepartmentManagement />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/corporate/invitations"
+                                element={
+                                    <ProtectedRoute>
+                                        <InvitationManagement />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/corporate/announcements"
+                                element={
+                                    <ProtectedRoute>
+                                        <CompanyAnnouncements />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/corporate/settings"
+                                element={
+                                    <ProtectedRoute>
+                                        <CompanySettings />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/corporate/employees"
+                                element={
+                                    <ProtectedRoute>
+                                        <EmployeeDirectory />
                                     </ProtectedRoute>
                                 }
                             />

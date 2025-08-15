@@ -152,6 +152,11 @@ const Dashboard: React.FC = () => {
                         <Link to="/lounges/create" className="btn btn-primary">
                             Create Lounge
                         </Link>
+                        {user?.companyId && (
+                            <Link to="/corporate" className="btn btn-corporate">
+                                Corporate Dashboard
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

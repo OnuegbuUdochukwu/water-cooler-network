@@ -18,6 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     List<User> findByCompanyIdAndIsActiveTrue(Long companyId);
     
+    List<User> findByCompanyId(Long companyId);
+    
     List<User> findByIndustryAndIsActiveTrue(String industry);
     
     @Query("SELECT u FROM User u WHERE u.isActive = true AND u.id != :userId")
