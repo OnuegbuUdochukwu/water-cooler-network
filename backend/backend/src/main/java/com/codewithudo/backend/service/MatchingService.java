@@ -28,6 +28,9 @@ public class MatchingService {
     @Autowired
     private ChatHistoryRepository chatHistoryRepository;
     
+    @Autowired
+    private GamificationService gamificationService;
+    
     public MatchDto createMatchRequest(Long requestingUserId, MatchRequestDto requestDto) {
         // Check if match already exists
         if (matchRepository.existsByUser1IdAndUser2IdAndStatusAndIsActiveTrue(
@@ -52,6 +55,9 @@ public class MatchingService {
         logChatMessage(savedMatch.getId(), requestingUserId, 
                 "Match request sent: " + requestDto.getMessage(), 
                 ChatHistory.MessageType.MATCH_REQUEST);
+        
+        // Log activity for gamification
+        gamificationService.logActivity(requestingUserId, ActivityLog.ActivityType.COFFEE_CHAT_REQUEST, savedMatch.getId(), null);
         
         return convertToMatchDto(savedMatch);
     }
@@ -85,6 +91,11 @@ public class MatchingService {
                 responseDto.getStatus() == Match.MatchStatus.ACCEPTED ? 
                         ChatHistory.MessageType.MATCH_ACCEPTED : 
                         ChatHistory.MessageType.MATCH_REJECTED);
+        
+        // Log activity for gamification
+        if (responseDto.getStatus() == Match.MatchStatus.ACCEPTED) {
+            gamificationService.logActivity(respondingUserId, ActivityLog.ActivityType.COFFEE_CHAT_ACCEPTED, matchId, null);
+        }
         
         return convertToMatchDto(updatedMatch);
     }

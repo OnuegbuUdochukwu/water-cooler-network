@@ -1,10 +1,33 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import BadgeDisplay from "../gamification/BadgeDisplay";
+import StreakCounter from "../gamification/StreakCounter";
+import axios from "axios";
 import "./Dashboard.css";
 
 const Dashboard: React.FC = () => {
     const { user } = useAuth();
+    const [gamificationSummary, setGamificationSummary] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchGamificationSummary();
+    }, []);
+
+    const fetchGamificationSummary = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('/api/gamification/summary', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setGamificationSummary(response.data);
+        } catch (error) {
+            console.error('Error fetching gamification summary:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="dashboard">
@@ -40,9 +63,51 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Gamification Summary */}
+                {!loading && gamificationSummary && (
+                    <div className="gamification-summary card">
+                        <div className="card-header">
+                            <h2 className="card-title">🏆 Your Progress</h2>
+                            <Link to="/achievements" className="view-all-link">
+                                View All →
+                            </Link>
+                        </div>
+                        <div className="gamification-grid">
+                            <div className="gamification-stats">
+                                <div className="stat-item">
+                                    <span className="stat-number">{gamificationSummary.totalBadges}</span>
+                                    <span className="stat-label">Badges</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-number">{gamificationSummary.totalPoints}</span>
+                                    <span className="stat-label">Points</span>
+                                </div>
+                                <div className="stat-item">
+                                    <span className="stat-number">{gamificationSummary.longestStreak}</span>
+                                    <span className="stat-label">Best Streak</span>
+                                </div>
+                            </div>
+                            {gamificationSummary.activeStreaks && gamificationSummary.activeStreaks.length > 0 && (
+                                <div className="dashboard-streaks">
+                                    <StreakCounter streaks={gamificationSummary.activeStreaks} compact />
+                                </div>
+                            )}
+                            {gamificationSummary.displayedBadges && gamificationSummary.displayedBadges.length > 0 && (
+                                <div className="dashboard-badges">
+                                    <BadgeDisplay 
+                                        badges={gamificationSummary.displayedBadges} 
+                                        maxDisplay={4}
+                                        size="small"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 <div className="features-overview card">
                     <div className="card-header">
-                        <h2 className="card-title">🚀 Coming Soon</h2>
+                        <h2 className="card-title">🚀 Platform Features</h2>
                     </div>
                     <div className="features-grid">
                         <div className="feature-item">

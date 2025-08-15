@@ -44,6 +44,69 @@
     margin-top: 20px;
 }
 
+.gamification-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.gamification-summary .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.view-all-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.view-all-link:hover {
+    opacity: 1;
+}
+
+.gamification-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr;
+}
+
+.gamification-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.gamification-stats .stat-item {
+    text-align: center;
+}
+
+.gamification-stats .stat-number {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.gamification-stats .stat-label {
+    font-size: 12px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dashboard-streaks,
+.dashboard-badges {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+}
+
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

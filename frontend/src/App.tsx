@@ -16,6 +16,7 @@ import MyMatches from "./components/matching/MyMatches";
 import LoungeDiscovery from "./components/lounges/LoungeDiscovery";
 import CreateLounge from "./components/lounges/CreateLounge";
 import LoungeChat from "./components/lounges/LoungeChat";
+import AchievementsDashboard from "./components/gamification/AchievementsDashboard";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -81,6 +82,14 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <LoungeChat />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/achievements"
+                                element={
+                                    <ProtectedRoute>
+                                        <AchievementsDashboard />
                                     </ProtectedRoute>
                                 }
                             />

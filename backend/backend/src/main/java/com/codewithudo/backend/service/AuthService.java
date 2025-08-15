@@ -3,6 +3,7 @@ package com.codewithudo.backend.service;
 import com.codewithudo.backend.dto.AuthResponseDto;
 import com.codewithudo.backend.dto.UserLoginDto;
 import com.codewithudo.backend.dto.UserProfileDto;
+import com.codewithudo.backend.entity.ActivityLog;
 import com.codewithudo.backend.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,9 @@ public class AuthService {
     @Autowired
     private UserService userService;
     
+    @Autowired
+    private GamificationService gamificationService;
+    
     public AuthResponseDto login(UserLoginDto loginDto) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
@@ -33,6 +37,9 @@ public class AuthService {
         String jwt = tokenProvider.generateToken(authentication);
         UserProfileDto userProfile = userService.getUserProfileByEmail(loginDto.getEmail())
                 .orElseThrow(() -> new RuntimeException("User profile not found"));
+        
+        // Log login activity for gamification
+        gamificationService.logActivity(userProfile.getId(), ActivityLog.ActivityType.LOGIN, null, null);
         
         return new AuthResponseDto(jwt, userProfile, "Login successful");
     }

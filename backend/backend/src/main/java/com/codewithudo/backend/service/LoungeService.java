@@ -25,6 +25,9 @@ public class LoungeService {
     @Autowired
     private UserRepository userRepository;
     
+    @Autowired
+    private GamificationService gamificationService;
+    
     public LoungeDto createLounge(Long userId, CreateLoungeDto createDto) {
         // Check if lounge title already exists
         if (loungeRepository.existsByTitleAndIsActiveTrue(createDto.getTitle())) {
@@ -58,6 +61,9 @@ public class LoungeService {
         
         // Log system message
         logSystemMessage(savedLounge.getId(), userId, "Lounge created", LoungeMessage.MessageType.SYSTEM);
+        
+        // Log activity for gamification
+        gamificationService.logActivity(userId, ActivityLog.ActivityType.LOUNGE_CREATED, savedLounge.getId(), null);
         
         return convertToLoungeDto(savedLounge, userId);
     }
@@ -144,6 +150,9 @@ public class LoungeService {
         // Log join message
         logSystemMessage(loungeId, userId, "joined the lounge", LoungeMessage.MessageType.JOIN);
         
+        // Log activity for gamification
+        gamificationService.logActivity(userId, ActivityLog.ActivityType.LOUNGE_JOINED, loungeId, null);
+        
         return convertToLoungeDto(lounge, userId);
     }
     
@@ -217,6 +226,9 @@ public class LoungeService {
         // Update participant last activity
         participant.setLastActivity(LocalDateTime.now());
         loungeParticipantRepository.save(participant);
+        
+        // Log activity for gamification
+        gamificationService.logActivity(userId, ActivityLog.ActivityType.LOUNGE_MESSAGE_SENT, sendDto.getLoungeId(), null);
         
         return convertToMessageDto(savedMessage);
     }
