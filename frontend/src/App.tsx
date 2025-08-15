@@ -11,6 +11,8 @@ import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Profile from "./components/profile/Profile";
 import Dashboard from "./components/dashboard/Dashboard";
+import MatchFinder from "./components/matching/MatchFinder";
+import MyMatches from "./components/matching/MyMatches";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -36,6 +38,22 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <Dashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/matches"
+                                element={
+                                    <ProtectedRoute>
+                                        <MatchFinder />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/my-matches"
+                                element={
+                                    <ProtectedRoute>
+                                        <MyMatches />
                                     </ProtectedRoute>
                                 }
                             />

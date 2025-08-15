@@ -75,10 +75,10 @@ const Dashboard: React.FC = () => {
                             Update Profile
                         </button>
                         <button className="btn btn-secondary">
-                            Browse Users
+                            Find Matches
                         </button>
                         <button className="btn btn-secondary">
-                            View Analytics
+                            My Matches
                         </button>
                     </div>
                 </div>
