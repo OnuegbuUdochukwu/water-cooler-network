@@ -42,13 +42,19 @@ const Navbar: React.FC = () => {
                             🏢 Corporate
                         </Link>
                         <Link to="/smart-matching" className="nav-link">
-                            🤖 Smart Matching
+                            Smart Matching
                         </Link>
                         <Link to="/meetings" className="nav-link">
-                            📅 Meetings
+                            Meetings
                         </Link>
                         <Link to="/feedback" className="nav-link">
-                            📊 Feedback
+                            Feedback
+                        </Link>
+                        <Link to="/analytics" className="nav-link">
+                            Analytics
+                        </Link>
+                        <Link to="/insights" className="nav-link">
+                            My Insights
                         </Link>
                         <Link to="/profile" className="navbar-item">
                             Profile

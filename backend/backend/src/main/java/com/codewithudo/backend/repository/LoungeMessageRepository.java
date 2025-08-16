@@ -29,6 +29,8 @@ public interface LoungeMessageRepository extends JpaRepository<LoungeMessage, Lo
     
     List<LoungeMessage> findByReplyToMessageIdAndIsDeletedFalse(Long replyToMessageId);
     
-    @Query("SELECT COUNT(lm) FROM LoungeMessage lm WHERE lm.loungeId = :loungeId AND lm.isDeleted = false")
-    Long countMessagesByLoungeId(@Param("loungeId") Long loungeId);
+    @Query("SELECT COUNT(lm) FROM LoungeMessage lm WHERE lm.lounge.id = :loungeId")
+    Long countByLoungeId(@Param("loungeId") Long loungeId);
+    
+    Long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

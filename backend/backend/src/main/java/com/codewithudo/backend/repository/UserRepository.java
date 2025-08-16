@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,15 +19,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     List<User> findByCompanyIdAndIsActiveTrue(Long companyId);
     
-    List<User> findByCompanyId(Long companyId);
+    @Query("SELECT u FROM User u WHERE u.companyId = :companyId")
+    List<User> findByCompanyId(@Param("companyId") Long companyId);
+    
+    List<User> findByIsActiveTrue();
+    
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt BETWEEN :startDate AND :endDate")
+    Long countByCreatedAtBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     List<User> findByIndustryAndIsActiveTrue(String industry);
     
-    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.id != :userId")
-    List<User> findAllActiveUsersExcept(@Param("userId") Long userId);
-    
     @Query("SELECT u FROM User u WHERE u.isActive = true AND u.role = 'USER'")
     List<User> findAllActiveRegularUsers();
+    
+    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.id != :userId")
+    List<User> findAllActiveUsersExcept(@Param("userId") Long userId);
     
     @Query("SELECT u FROM User u WHERE u.isActive = true AND u.id NOT IN :excludedIds")
     List<User> findActiveUsersExcluding(@Param("excludedIds") List<Long> excludedIds);

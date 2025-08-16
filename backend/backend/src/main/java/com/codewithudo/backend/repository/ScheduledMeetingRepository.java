@@ -36,4 +36,6 @@ public interface ScheduledMeetingRepository extends JpaRepository<ScheduledMeeti
     @Query("SELECT COUNT(sm) FROM ScheduledMeeting sm WHERE (sm.organizerId = :userId OR sm.participantId = :userId) " +
            "AND sm.status = 'COMPLETED'")
     Long countCompletedMeetings(@Param("userId") Long userId);
+    
+    Long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

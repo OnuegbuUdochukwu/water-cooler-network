@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,11 @@ public interface MatchFeedbackRepository extends JpaRepository<MatchFeedback, Lo
     List<MatchFeedback> findByUserId(Long userId);
     
     Optional<MatchFeedback> findByMatchIdAndUserId(Long matchId, Long userId);
+    
+    @Query("SELECT AVG(mf.rating) FROM MatchFeedback mf WHERE mf.userId = :userId")
+    Double findAverageRatingByUserId(@Param("userId") Long userId);
+    
+    List<MatchFeedback> findByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
     
     @Query("SELECT AVG(mf.qualityRating) FROM MatchFeedback mf WHERE mf.matchId = :matchId")
     Double getAverageQualityRating(@Param("matchId") Long matchId);

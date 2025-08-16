@@ -23,9 +23,11 @@ import InvitationManagement from "./components/corporate/InvitationManagement";
 import CompanySettings from "./components/corporate/CompanySettings";
 import CompanyAnnouncements from "./components/corporate/CompanyAnnouncements";
 import EmployeeDirectory from "./components/corporate/EmployeeDirectory";
-import SmartMatching from "./components/SmartMatching";
-import MeetingScheduler from "./components/MeetingScheduler";
-import MatchFeedback from "./components/MatchFeedback";
+import SmartMatching from './components/SmartMatching';
+import MeetingScheduler from './components/MeetingScheduler';
+import MatchFeedback from './components/MatchFeedback';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import UserInsights from './components/UserInsights';
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -171,6 +173,22 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <MatchFeedback />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/analytics"
+                                element={
+                                    <ProtectedRoute>
+                                        <AnalyticsDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/insights"
+                                element={
+                                    <ProtectedRoute>
+                                        <UserInsights />
                                     </ProtectedRoute>
                                 }
                             />

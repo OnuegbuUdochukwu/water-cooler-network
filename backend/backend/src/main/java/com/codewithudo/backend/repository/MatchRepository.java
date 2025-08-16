@@ -35,4 +35,10 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<Long> findMatchedUserIds(@Param("userId") Long userId);
     
     boolean existsByUser1IdAndUser2IdAndStatusAndIsActiveTrue(Long user1Id, Long user2Id, Match.MatchStatus status);
+    
+    Long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    Long countByUser1IdAndCreatedAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    Long countByUser2IdAndCreatedAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
 }

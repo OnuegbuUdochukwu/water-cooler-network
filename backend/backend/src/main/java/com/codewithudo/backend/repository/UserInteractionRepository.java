@@ -14,7 +14,9 @@ public interface UserInteractionRepository extends JpaRepository<UserInteraction
     
     List<UserInteraction> findByUserIdOrderByCreatedAtDesc(Long userId);
     
-    List<UserInteraction> findByUserIdAndInteractionType(Long userId, UserInteraction.InteractionType interactionType);
+    List<UserInteraction> findByUserIdAndInteractionTypeOrderByCreatedAtDesc(Long userId, UserInteraction.InteractionType interactionType);
+    
+    List<UserInteraction> findByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
     
     @Query("SELECT ui FROM UserInteraction ui WHERE ui.userId = :userId AND ui.createdAt >= :since")
     List<UserInteraction> findRecentInteractions(@Param("userId") Long userId, @Param("since") LocalDateTime since);
