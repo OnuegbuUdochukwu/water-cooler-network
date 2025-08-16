@@ -19,7 +19,7 @@ public interface MatchFeedbackRepository extends JpaRepository<MatchFeedback, Lo
     
     Optional<MatchFeedback> findByMatchIdAndUserId(Long matchId, Long userId);
     
-    @Query("SELECT AVG(mf.rating) FROM MatchFeedback mf WHERE mf.userId = :userId")
+    @Query("SELECT AVG(mf.qualityRating) FROM MatchFeedback mf WHERE mf.userId = :userId")
     Double findAverageRatingByUserId(@Param("userId") Long userId);
     
     List<MatchFeedback> findByUserIdAndCreatedAtBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);

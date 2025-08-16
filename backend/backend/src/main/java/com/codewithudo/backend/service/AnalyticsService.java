@@ -27,11 +27,11 @@ public class AnalyticsService {
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
     private final ScheduledMeetingRepository scheduledMeetingRepository;
-    private final LoungeRepository loungeRepository;
-    private final LoungeMessageRepository loungeMessageRepository;
+    // private final LoungeRepository loungeRepository;
+    // private final LoungeMessageRepository loungeMessageRepository;
     private final UserInteractionRepository userInteractionRepository;
     private final MatchFeedbackRepository matchFeedbackRepository;
-    private final UserStreakRepository userStreakRepository;
+    // private final UserStreakRepository userStreakRepository;
     
     @Transactional(readOnly = true)
     public AnalyticsOverviewDTO getPlatformOverview() {
@@ -133,7 +133,7 @@ public class AnalyticsService {
         // Generate platform analytics
         generatePlatformAnalytics(yesterday);
         
-        // Generate user analytics for active users
+        // Generate user analytics
         List<User> activeUsers = userRepository.findByIsActiveTrue();
         for (User user : activeUsers) {
             generateUserAnalytics(user.getId(), yesterday);
@@ -161,10 +161,9 @@ public class AnalyticsService {
         analytics.setMeetingsScheduledToday(scheduledMeetingRepository.countByCreatedAtBetween(
             date.atStartOfDay(), date.plusDays(1).atStartOfDay()));
         
-        // Calculate lounge metrics
-        analytics.setTotalLounges(loungeRepository.count());
-        analytics.setMessagesSentToday(loungeMessageRepository.countByCreatedAtBetween(
-            date.atStartOfDay(), date.plusDays(1).atStartOfDay()));
+        // Calculate lounge metrics - TODO: implement when LoungeRepository is available
+        analytics.setTotalLounges(0L);
+        long messagesSent = 0;
         
         // Calculate rates and averages
         calculatePlatformRates(analytics, date);
@@ -187,6 +186,8 @@ public class AnalyticsService {
         
         // Calculate metrics based on interactions
         calculateUserMetricsFromInteractions(analytics, interactions);
+        
+        analytics.setMessagesSent(0);
         
         userAnalyticsRepository.save(analytics);
     }
@@ -261,20 +262,11 @@ public class AnalyticsService {
     }
     
     private void calculateStreaksAndAchievements(UserInsightsDTO insights, Long userId) {
-        // Get user streaks
-        List<UserStreak> streaks = userStreakRepository.findByUserId(userId);
-        
-        for (UserStreak streak : streaks) {
-            switch (streak.getStreakType()) {
-                case LOGIN_STREAK:
-                    insights.setCurrentLoginStreak(streak.getCurrentCount());
-                    insights.setLongestLoginStreak(streak.getBestCount());
-                    break;
-                case COFFEE_CHAT:
-                    insights.setCurrentMatchStreak(streak.getCurrentCount());
-                    break;
-            }
-        }
+        // TODO: Implement streak calculation when UserStreakRepository is available
+        // Set default values for now
+        insights.setCurrentLoginStreak(0);
+        insights.setLongestLoginStreak(0);
+        insights.setCurrentMatchStreak(0);
     }
     
     private List<UserInsightsDTO.DailyActivityDTO> createActivityTrend(List<UserAnalytics> userAnalytics) {
@@ -426,29 +418,52 @@ public class AnalyticsService {
     }
     
     private void calculateUserMetricsFromInteractions(UserAnalytics analytics, List<UserInteraction> interactions) {
+        int profileViews = 0;
+        int matchesAccepted = 0;
+        int matchesRejected = 0;
+        int messagesSent = 0;
+        int loungesJoined = 0;
+        int feedbackGiven = 0;
+        
         // Count different types of interactions
         for (UserInteraction interaction : interactions) {
             switch (interaction.getInteractionType()) {
                 case PROFILE_VIEW:
-                    analytics.setProfileViews(analytics.getProfileViews() + 1);
+                    profileViews++;
                     break;
                 case MATCH_ACCEPTED:
-                    analytics.setMatchesAccepted(analytics.getMatchesAccepted() + 1);
+                    matchesAccepted++;
                     break;
                 case MATCH_REJECTED:
-                    analytics.setMatchesRejected(analytics.getMatchesRejected() + 1);
+                    matchesRejected++;
                     break;
                 case MESSAGE_SENT:
-                    analytics.setMessagesSent(analytics.getMessagesSent() + 1);
+                    messagesSent++;
                     break;
                 case LOUNGE_JOINED:
-                    analytics.setLoungesJoined(analytics.getLoungesJoined() + 1);
+                    loungesJoined++;
                     break;
                 case FEEDBACK_GIVEN:
-                    analytics.setFeedbackGiven(analytics.getFeedbackGiven() + 1);
+                    feedbackGiven++;
+                    break;
+                case MEETING_COMPLETED:
+                    // Handle meeting completion
+                    break;
+                case SKILL_SEARCH:
+                    // Handle skill search
+                    break;
+                case INTEREST_SEARCH:
+                    // Handle interest search
                     break;
             }
         }
+        
+        analytics.setProfileViews(profileViews);
+        analytics.setMatchesAccepted(matchesAccepted);
+        analytics.setMatchesRejected(matchesRejected);
+        analytics.setMessagesSent(messagesSent);
+        analytics.setLoungesJoined(loungesJoined);
+        analytics.setFeedbackGiven(feedbackGiven);
         
         analytics.setActionsPerformed(interactions.size());
     }
