@@ -114,4 +114,14 @@ public class UserService implements UserDetailsService {
         user.setIsActive(false);
         userRepository.save(user);
     }
+    
+    public User findByEmail(String email) {
+        return userRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    }
+    
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    }
 }

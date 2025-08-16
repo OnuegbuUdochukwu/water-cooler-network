@@ -23,6 +23,9 @@ import InvitationManagement from "./components/corporate/InvitationManagement";
 import CompanySettings from "./components/corporate/CompanySettings";
 import CompanyAnnouncements from "./components/corporate/CompanyAnnouncements";
 import EmployeeDirectory from "./components/corporate/EmployeeDirectory";
+import SmartMatching from "./components/SmartMatching";
+import MeetingScheduler from "./components/MeetingScheduler";
+import MatchFeedback from "./components/MatchFeedback";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -144,6 +147,30 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <EmployeeDirectory />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/smart-matching"
+                                element={
+                                    <ProtectedRoute>
+                                        <SmartMatching />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/meetings"
+                                element={
+                                    <ProtectedRoute>
+                                        <MeetingScheduler />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/feedback"
+                                element={
+                                    <ProtectedRoute>
+                                        <MatchFeedback />
                                     </ProtectedRoute>
                                 }
                             />

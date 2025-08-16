@@ -28,6 +28,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.isActive = true AND u.role = 'USER'")
     List<User> findAllActiveRegularUsers();
     
+    @Query("SELECT u FROM User u WHERE u.isActive = true AND u.id NOT IN :excludedIds")
+    List<User> findActiveUsersExcluding(@Param("excludedIds") List<Long> excludedIds);
+    
     boolean existsByEmail(String email);
     
     boolean existsByEmailAndIsActiveTrue(String email);

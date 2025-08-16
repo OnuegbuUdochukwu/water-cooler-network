@@ -30,5 +30,9 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     
     Optional<Match> findByIdAndIsActiveTrue(Long id);
     
+    @Query("SELECT DISTINCT CASE WHEN m.user1Id = :userId THEN m.user2Id ELSE m.user1Id END " +
+           "FROM Match m WHERE (m.user1Id = :userId OR m.user2Id = :userId) AND m.isActive = true")
+    List<Long> findMatchedUserIds(@Param("userId") Long userId);
+    
     boolean existsByUser1IdAndUser2IdAndStatusAndIsActiveTrue(Long user1Id, Long user2Id, Match.MatchStatus status);
 }
