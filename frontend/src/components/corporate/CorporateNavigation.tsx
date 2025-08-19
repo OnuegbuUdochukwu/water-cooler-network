@@ -57,8 +57,24 @@ const CorporateNavigation: React.FC = () => {
           <span className="nav-label">Employees</span>
         </Link>
         
+                <Link 
+          to="/corporate/subscriptions"
+          className={`nav-item ${isActive('/corporate/subscriptions') ? 'active' : ''}`}
+        >
+          <span className="nav-icon">💳</span>
+          <span className="nav-label">Subscriptions</span>
+        </Link>
+        
         <Link 
-          to="/corporate/settings" 
+          to="/analytics"
+          className={`nav-item ${isActive('/analytics') ? 'active' : ''}`}
+        >
+          <span className="nav-icon">📈</span>
+          <span className="nav-label">Analytics</span>
+        </Link>
+        
+        <Link 
+          to="/corporate/settings"
           className={`nav-item ${isActive('/corporate/settings') ? 'active' : ''}`}
         >
           <span className="nav-icon">⚙️</span>

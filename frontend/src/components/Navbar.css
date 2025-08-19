@@ -42,10 +42,15 @@
     color: #007bff;
 }
 
+.navbar-notification {
+    margin-left: auto;
+    margin-right: 1rem;
+}
+
 .navbar-user {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 1rem;
     margin-left: auto;
 }
 

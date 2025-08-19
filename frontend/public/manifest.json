@@ -1,15 +1,56 @@
 {
     "short_name": "Water Cooler",
-    "name": "The Water Cooler Network",
+    "name": "Water Cooler Network - Professional Networking Platform",
+    "description": "Connect with professionals, find coffee chat partners, and build meaningful workplace relationships",
     "icons": [
         {
             "src": "favicon.ico",
             "sizes": "64x64 32x32 24x24 16x16",
             "type": "image/x-icon"
+        },
+        {
+            "src": "/icons/icon-192x192.png",
+            "type": "image/png",
+            "sizes": "192x192",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "maskable any"
         }
     ],
-    "start_url": ".",
+    "start_url": "/",
     "display": "standalone",
-    "theme_color": "#000000",
-    "background_color": "#ffffff"
+    "orientation": "portrait-primary",
+    "theme_color": "#667eea",
+    "background_color": "#ffffff",
+    "categories": ["business", "productivity", "social"],
+    "lang": "en-US",
+    "scope": "/",
+    "prefer_related_applications": false,
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "short_name": "Dashboard",
+            "description": "View your dashboard",
+            "url": "/dashboard",
+            "icons": [{ "src": "/icons/dashboard-96x96.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Find Matches",
+            "short_name": "Matches",
+            "description": "Find coffee chat partners",
+            "url": "/matches",
+            "icons": [{ "src": "/icons/matches-96x96.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "Notifications",
+            "short_name": "Notifications",
+            "description": "View notifications",
+            "url": "/notifications",
+            "icons": [{ "src": "/icons/notifications-96x96.png", "sizes": "96x96" }]
+        }
+    ]
 }

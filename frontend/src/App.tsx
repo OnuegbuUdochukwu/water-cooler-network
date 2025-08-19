@@ -23,11 +23,14 @@ import InvitationManagement from "./components/corporate/InvitationManagement";
 import CompanySettings from "./components/corporate/CompanySettings";
 import CompanyAnnouncements from "./components/corporate/CompanyAnnouncements";
 import EmployeeDirectory from "./components/corporate/EmployeeDirectory";
+import SubscriptionManagement from "./components/corporate/SubscriptionManagement";
 import SmartMatching from './components/SmartMatching';
 import MeetingScheduler from './components/MeetingScheduler';
 import MatchFeedback from './components/MatchFeedback';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
+import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
+import MentorshipDashboard from './components/mentorship/MentorshipDashboard';
 import UserInsights from './components/UserInsights';
+import AdvancedSearch from './components/AdvancedSearch';
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function App() {
@@ -145,6 +148,14 @@ function App() {
                                 }
                             />
                             <Route
+                                path="/corporate/subscriptions"
+                                element={
+                                    <ProtectedRoute>
+                                        <SubscriptionManagement />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/corporate/employees"
                                 element={
                                     <ProtectedRoute>
@@ -185,10 +196,26 @@ function App() {
                                 }
                             />
                             <Route
+                                path="/mentorship"
+                                element={
+                                    <ProtectedRoute>
+                                        <MentorshipDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/insights"
                                 element={
                                     <ProtectedRoute>
                                         <UserInsights />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/search"
+                                element={
+                                    <ProtectedRoute>
+                                        <AdvancedSearch />
                                     </ProtectedRoute>
                                 }
                             />

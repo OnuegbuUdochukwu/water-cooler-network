@@ -3,6 +3,7 @@ import axios from 'axios';
 import BadgeDisplay from './BadgeDisplay';
 import StreakCounter from './StreakCounter';
 import AchievementNotification from './AchievementNotification';
+import Leaderboard from './Leaderboard';
 import './AchievementsDashboard.css';
 
 interface GamificationSummary {
@@ -24,7 +25,7 @@ const AchievementsDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [newAchievement, setNewAchievement] = useState<any>(null);
-    const [activeTab, setActiveTab] = useState<'overview' | 'badges' | 'streaks'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'badges' | 'streaks' | 'leaderboard'>('overview');
 
     useEffect(() => {
         fetchGamificationData();
@@ -126,6 +127,12 @@ const AchievementsDashboard: React.FC = () => {
                 >
                     🔥 Streaks ({allStreaks.filter(s => s.isActive).length})
                 </button>
+                <button 
+                    className={`tab-button ${activeTab === 'leaderboard' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('leaderboard')}
+                >
+                    🏆 Leaderboard
+                </button>
             </div>
 
             <div className="dashboard-content">
@@ -186,6 +193,16 @@ const AchievementsDashboard: React.FC = () => {
                             <p>Build streaks by staying consistent with your activities</p>
                         </div>
                         <StreakCounter streaks={allStreaks} />
+                    </div>
+                )}
+                
+                {activeTab === 'leaderboard' && (
+                    <div className="leaderboard-tab">
+                        <div className="tab-header">
+                            <h3>Global Leaderboard</h3>
+                            <p>See how you rank against other users</p>
+                        </div>
+                        <Leaderboard limit={20} showUserRank={true} />
                     </div>
                 )}
             </div>
