@@ -1,0 +1,343 @@
+/* Match Finder Styles */
+.match-finder {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.match-finder-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.match-finder-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.match-finder-header p {
+    font-size: 18px;
+    color: #666;
+}
+
+.matches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.match-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.match-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.match-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.compatibility-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.match-type {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+.match-content {
+    padding: 25px;
+}
+
+.match-content h3 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.user-email {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.compatibility-bar {
+    background: #f0f0f0;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.compatibility-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    transition: width 0.3s ease;
+}
+
+.match-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.match-actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+.match-finder-footer {
+    text-align: center;
+}
+
+/* My Matches Styles */
+.my-matches {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.my-matches-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.my-matches-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.my-matches-header p {
+    font-size: 18px;
+    color: #666;
+}
+
+.matches-filter {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.status-filter {
+    padding: 12px 20px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    cursor: pointer;
+    min-width: 200px;
+}
+
+.status-filter:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.match-item {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.match-info {
+    flex: 1;
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.match-header h3 {
+    color: #333;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-accepted {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-scheduled {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.status-in-progress {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-completed {
+    background: #d1f2eb;
+    color: #0f5132;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-default {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.match-details {
+    color: #666;
+    line-height: 1.6;
+}
+
+.match-details p {
+    margin-bottom: 8px;
+}
+
+.match-details strong {
+    color: #333;
+}
+
+.match-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 150px;
+}
+
+.pending-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pending-actions .btn {
+    width: 100%;
+}
+
+/* Loading States */
+.loading-spinner {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner .spinner {
+    margin: 0 auto 20px;
+}
+
+.loading-spinner p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* No Matches State */
+.no-matches {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.no-matches h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.no-matches p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .match-finder-header h1,
+    .my-matches-header h1 {
+        font-size: 28px;
+    }
+
+    .match-finder-header p,
+    .my-matches-header p {
+        font-size: 16px;
+    }
+
+    .matches-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .match-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .match-actions {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .pending-actions {
+        flex-direction: row;
+    }
+
+    .pending-actions .btn {
+        flex: 1;
+    }
+}

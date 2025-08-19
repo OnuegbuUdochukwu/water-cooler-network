@@ -1,0 +1,296 @@
+.achievement-notification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.achievement-notification.closing {
+    animation: slideOut 0.3s ease-in;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-100px);
+    }
+}
+
+.notification-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.notification-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    border: 3px solid;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: cardPulse 0.6s ease-out;
+}
+
+@keyframes cardPulse {
+    0% {
+        transform: scale(0.8);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Rarity Colors */
+.notification-card.rarity-common {
+    border-color: #6c757d;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.notification-card.rarity-rare {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+}
+
+.notification-card.rarity-epic {
+    border-color: #6f42c1;
+    background: linear-gradient(135deg, #f3e8ff 0%, #e0cffc 100%);
+}
+
+.notification-card.rarity-legendary {
+    border-color: #fd7e14;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b3 100%);
+    animation: cardPulse 0.6s ease-out, legendaryGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes legendaryGlow {
+    from {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(253, 126, 20, 0.5);
+    }
+    to {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 40px rgba(253, 126, 20, 0.8);
+    }
+}
+
+.close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6c757d;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-button:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #495057;
+}
+
+.achievement-header h2 {
+    margin: 0 0 24px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge-showcase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.badge-icon-large {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: iconBounce 0.8s ease-out 0.3s;
+}
+
+@keyframes iconBounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.badge-icon-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.badge-emoji-large {
+    font-size: 64px;
+    line-height: 1;
+}
+
+.badge-details {
+    text-align: center;
+}
+
+.badge-name {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+.badge-description {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+.badge-rarity {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.1);
+    color: #495057;
+}
+
+/* Celebration Effects */
+.celebration-effects {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+.sparkle {
+    position: absolute;
+    font-size: 20px;
+    animation: sparkleFloat 3s ease-in-out infinite;
+    opacity: 0;
+}
+
+.sparkle-1 {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0.5s;
+}
+
+.sparkle-2 {
+    top: 30%;
+    right: 15%;
+    animation-delay: 1s;
+}
+
+.sparkle-3 {
+    top: 60%;
+    left: 20%;
+    animation-delay: 1.5s;
+}
+
+.sparkle-4 {
+    top: 70%;
+    right: 25%;
+    animation-delay: 2s;
+}
+
+.sparkle-5 {
+    top: 15%;
+    left: 50%;
+    animation-delay: 0.8s;
+}
+
+.sparkle-6 {
+    top: 80%;
+    right: 50%;
+    animation-delay: 1.3s;
+}
+
+@keyframes sparkleFloat {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .notification-card {
+        margin: 20px;
+        padding: 24px;
+    }
+    
+    .achievement-header h2 {
+        font-size: 20px;
+    }
+    
+    .badge-icon-large {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .badge-emoji-large {
+        font-size: 48px;
+    }
+    
+    .badge-name {
+        font-size: 18px;
+    }
+}
