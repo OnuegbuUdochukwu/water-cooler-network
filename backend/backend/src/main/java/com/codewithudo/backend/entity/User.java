@@ -35,7 +35,7 @@ public class User {
     
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
     
     @Enumerated(EnumType.STRING)
@@ -67,6 +67,9 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @Column(name = "last_active_date")
+    private LocalDateTime lastActiveDate;
     
     public enum UserRole {
         USER, ADMIN, CORPORATE_ADMIN

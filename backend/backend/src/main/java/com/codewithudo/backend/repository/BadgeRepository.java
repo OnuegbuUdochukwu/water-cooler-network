@@ -22,4 +22,10 @@ public interface BadgeRepository extends JpaRepository<Badge, Long> {
     
     @Query("SELECT b FROM Badge b WHERE b.isActive = true ORDER BY b.rarityLevel DESC, b.name ASC")
     List<Badge> findAllActiveBadgesOrderedByRarity();
+    
+    List<Badge> findByBadgeCategoryAndIsActiveTrue(Badge.BadgeCategory category);
+    
+    List<Badge> findByRarityLevelAndIsActiveTrue(Integer rarityLevel);
+    
+    List<Badge> findByBadgeTypeAndIsActiveTrue(Badge.BadgeType badgeType);
 }

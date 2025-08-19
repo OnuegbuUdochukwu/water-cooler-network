@@ -47,16 +47,52 @@ public class GamificationController {
     }
     
     @PostMapping("/badges/{badgeId}/toggle-display")
-    public ResponseEntity<String> toggleBadgeDisplay(
-            @PathVariable Long badgeId,
-            Authentication authentication) {
-        // Implementation would toggle badge display status
-        return ResponseEntity.ok("Badge display toggled successfully");
+    public ResponseEntity<Void> toggleBadgeDisplay(@PathVariable Long badgeId, Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        badgeService.toggleBadgeDisplay(userId, badgeId);
+        return ResponseEntity.ok().build();
     }
     
     @PostMapping("/initialize-badges")
     public ResponseEntity<String> initializeBadges() {
         badgeService.initializeDefaultBadges();
         return ResponseEntity.ok("Default badges initialized successfully");
+    }
+    
+    @GetMapping("/badges/{badgeId}/progress")
+    public ResponseEntity<BadgeProgressDTO> getBadgeProgress(@PathVariable Long badgeId, Authentication authentication) {
+        Long userId = Long.parseLong(authentication.getName());
+        BadgeProgressDTO progress = badgeService.getBadgeProgress(userId, badgeId);
+        if (progress != null) {
+            return ResponseEntity.ok(progress);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @GetMapping("/badges/category/{category}")
+    public ResponseEntity<List<BadgeDTO>> getBadgesByCategory(@PathVariable String category) {
+        try {
+            com.codewithudo.backend.entity.Badge.BadgeCategory badgeCategory = com.codewithudo.backend.entity.Badge.BadgeCategory.valueOf(category.toUpperCase());
+            List<BadgeDTO> badges = badgeService.getBadgesByCategory(badgeCategory);
+            return ResponseEntity.ok(badges);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/badges/rarity/{rarityLevel}")
+    public ResponseEntity<List<BadgeDTO>> getBadgesByRarity(@PathVariable Integer rarityLevel) {
+        if (rarityLevel < 1 || rarityLevel > 4) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<BadgeDTO> badges = badgeService.getBadgesByRarity(rarityLevel);
+        return ResponseEntity.ok(badges);
+    }
+    
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<LeaderboardEntryDTO>> getLeaderboard(@RequestParam(defaultValue = "10") int limit) {
+        List<LeaderboardEntryDTO> leaderboard = gamificationService.getLeaderboard(limit);
+        return ResponseEntity.ok(leaderboard);
     }
 }

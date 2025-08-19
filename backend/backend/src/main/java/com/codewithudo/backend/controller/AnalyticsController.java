@@ -1,101 +1,133 @@
 package com.codewithudo.backend.controller;
 
-import com.codewithudo.backend.dto.AnalyticsOverviewDTO;
-import com.codewithudo.backend.dto.UserInsightsDTO;
+import com.codewithudo.backend.dto.AnalyticsResponseDTO;
+import com.codewithudo.backend.entity.AnalyticsData;
 import com.codewithudo.backend.service.AnalyticsService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/analytics")
-@RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
+@CrossOrigin(origins = "*")
 public class AnalyticsController {
-    
-    private final AnalyticsService analyticsService;
-    
-    @GetMapping("/overview")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CORPORATE_ADMIN')")
-    public ResponseEntity<AnalyticsOverviewDTO> getPlatformOverview() {
-        AnalyticsOverviewDTO overview = analyticsService.getPlatformOverview();
-        return ResponseEntity.ok(overview);
+
+    @Autowired
+    private AnalyticsService analyticsService;
+
+    @GetMapping("/company/{companyId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('HR_MANAGER')")
+    public ResponseEntity<Map<String, Object>> getCompanyOverview(@PathVariable Long companyId) {
+        try {
+            Map<String, Object> overview = analyticsService.getCompanyOverview(companyId);
+            return ResponseEntity.ok(overview);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
-    
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CORPORATE_ADMIN') or #userId == authentication.principal.id")
-    public ResponseEntity<UserInsightsDTO> getUserInsights(@PathVariable Long userId) {
-        UserInsightsDTO insights = analyticsService.getUserInsights(userId);
-        return ResponseEntity.ok(insights);
-    }
-    
-    @GetMapping("/user/insights")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserInsightsDTO> getUserInsights(Authentication authentication) {
-        // Temporary fix for testing - using hardcoded user ID
-        UserInsightsDTO insights = analyticsService.getUserInsights(1L); // Temporary fix for testing
-        return ResponseEntity.ok(insights);
-    }
-    
-    @PostMapping("/generate-daily")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> generateDailyAnalytics() {
-        analyticsService.generateDailyAnalytics();
-        return ResponseEntity.ok("Daily analytics generation triggered successfully");
-    }
-    
-    @GetMapping("/platform/summary")
-    public ResponseEntity<AnalyticsOverviewDTO> getPlatformSummary() {
-        // Public endpoint for basic platform statistics
-        AnalyticsOverviewDTO overview = analyticsService.getPlatformOverview();
-        
-        return ResponseEntity.ok(overview);
-    }
-    
-    @GetMapping("/trends")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('CORPORATE_ADMIN')")
-    public ResponseEntity<TrendsDTO> getTrends(
+
+    @GetMapping("/company/{companyId}/metric/{metricType}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('HR_MANAGER')")
+    public ResponseEntity<AnalyticsResponseDTO> getCompanyMetric(
+            @PathVariable Long companyId,
+            @PathVariable AnalyticsData.MetricType metricType,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "DAILY") AnalyticsData.PeriodType periodType) {
         
-        // Implementation for custom date range trends
-        TrendsDTO trends = new TrendsDTO();
-        // Add trend calculation logic here
-        
-        return ResponseEntity.ok(trends);
+        try {
+            AnalyticsResponseDTO analytics = analyticsService.getAnalytics(
+                    companyId, null, metricType, startDate, endDate, periodType);
+            return ResponseEntity.ok(analytics);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
-    
-    // DTOs for additional endpoints
-    public static class PlatformSummaryDTO {
-        private Long totalUsers;
-        private Long totalMatches;
-        private Long totalLounges;
-        private Double averageRating;
+
+    @GetMapping("/company/{companyId}/department/{departmentId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('HR_MANAGER')")
+    public ResponseEntity<Map<String, Object>> getDepartmentAnalytics(
+            @PathVariable Long companyId,
+            @PathVariable Long departmentId) {
         
-        // Getters and setters
-        public Long getTotalUsers() { return totalUsers; }
-        public void setTotalUsers(Long totalUsers) { this.totalUsers = totalUsers; }
-        
-        public Long getTotalMatches() { return totalMatches; }
-        public void setTotalMatches(Long totalMatches) { this.totalMatches = totalMatches; }
-        
-        public Long getTotalLounges() { return totalLounges; }
-        public void setTotalLounges(Long totalLounges) { this.totalLounges = totalLounges; }
-        
-        public Double getAverageRating() { return averageRating; }
-        public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
+        try {
+            Map<String, Object> analytics = analyticsService.getDepartmentAnalytics(companyId, departmentId);
+            return ResponseEntity.ok(analytics);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
-    
-    public static class TrendsDTO {
-        // Add trend data fields as needed
-        private String message = "Trends data implementation pending";
+
+    @GetMapping("/company/{companyId}/department/{departmentId}/metric/{metricType}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('HR_MANAGER')")
+    public ResponseEntity<AnalyticsResponseDTO> getDepartmentMetric(
+            @PathVariable Long companyId,
+            @PathVariable Long departmentId,
+            @PathVariable AnalyticsData.MetricType metricType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "DAILY") AnalyticsData.PeriodType periodType) {
         
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
+        try {
+            AnalyticsResponseDTO analytics = analyticsService.getAnalytics(
+                    companyId, departmentId, metricType, startDate, endDate, periodType);
+            return ResponseEntity.ok(analytics);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/company/{companyId}/generate/daily")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> generateDailyAnalytics(@PathVariable Long companyId) {
+        try {
+            analyticsService.generateDailyAnalytics(companyId);
+            return ResponseEntity.ok("Daily analytics generated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to generate daily analytics");
+        }
+    }
+
+    @PostMapping("/company/{companyId}/generate/weekly")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> generateWeeklyAnalytics(@PathVariable Long companyId) {
+        try {
+            analyticsService.generateWeeklyAnalytics(companyId);
+            return ResponseEntity.ok("Weekly analytics generated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to generate weekly analytics");
+        }
+    }
+
+    @PostMapping("/company/{companyId}/generate/monthly")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> generateMonthlyAnalytics(@PathVariable Long companyId) {
+        try {
+            analyticsService.generateMonthlyAnalytics(companyId);
+            return ResponseEntity.ok("Monthly analytics generated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to generate monthly analytics");
+        }
+    }
+
+    @GetMapping("/company/{companyId}/export")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('HR_MANAGER')")
+    public ResponseEntity<String> exportAnalytics(
+            @PathVariable Long companyId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "CSV") String format) {
+        
+        try {
+            // TODO: Implement export functionality
+            return ResponseEntity.ok("Export functionality coming soon");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to export analytics");
+        }
     }
 }

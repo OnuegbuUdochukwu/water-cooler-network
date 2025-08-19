@@ -1,470 +1,318 @@
 package com.codewithudo.backend.service;
 
-import com.codewithudo.backend.dto.AnalyticsOverviewDTO;
-import com.codewithudo.backend.dto.UserInsightsDTO;
-import com.codewithudo.backend.entity.*;
-import com.codewithudo.backend.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import com.codewithudo.backend.dto.AnalyticsResponseDTO;
+import com.codewithudo.backend.entity.AnalyticsData;
+import com.codewithudo.backend.repository.AnalyticsDataRepository;
+import com.codewithudo.backend.repository.UserRepository;
+import com.codewithudo.backend.repository.ActivityLogRepository;
+import com.codewithudo.backend.repository.UserBadgeRepository;
+import com.codewithudo.backend.repository.UserStreakRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AnalyticsService {
     
-    private final PlatformAnalyticsRepository platformAnalyticsRepository;
-    private final UserAnalyticsRepository userAnalyticsRepository;
-    private final UserRepository userRepository;
-    private final MatchRepository matchRepository;
-    private final ScheduledMeetingRepository scheduledMeetingRepository;
-    // private final LoungeRepository loungeRepository;
-    // private final LoungeMessageRepository loungeMessageRepository;
-    private final UserInteractionRepository userInteractionRepository;
-    private final MatchFeedbackRepository matchFeedbackRepository;
-    // private final UserStreakRepository userStreakRepository;
-    
-    @Transactional(readOnly = true)
-    public AnalyticsOverviewDTO getPlatformOverview() {
-        LocalDate today = LocalDate.now();
-        LocalDate thirtyDaysAgo = today.minusDays(30);
+    @Autowired
+    private AnalyticsDataRepository analyticsDataRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
+
+    @Autowired
+    private UserBadgeRepository userBadgeRepository;
+
+    @Autowired
+    private UserStreakRepository userStreakRepository;
+
+    @Cacheable(value = "analytics", key = "#companyId + '_' + #metricType + '_' + #startDate + '_' + #endDate + '_' + #periodType")
+    public AnalyticsResponseDTO getAnalytics(Long companyId, Long departmentId, 
+                                          AnalyticsData.MetricType metricType,
+                                          LocalDate startDate, LocalDate endDate,
+                                          AnalyticsData.PeriodType periodType) {
         
-        // Get today's analytics
-        Optional<PlatformAnalytics> todayAnalytics = platformAnalyticsRepository.findByDate(today);
-        PlatformAnalytics analytics = todayAnalytics.orElse(new PlatformAnalytics());
+        List<AnalyticsData> data = departmentId != null ?
+                analyticsDataRepository.findByCompanyAndDepartmentAndDateRange(
+                        companyId, departmentId, startDate, endDate, periodType) :
+                analyticsDataRepository.findByCompanyAndMetricTypeAndDateRange(
+                        companyId, metricType, startDate, endDate, periodType);
+
+        if (data.isEmpty()) {
+            // Generate analytics data if none exists
+            data = generateAnalyticsData(companyId, departmentId, metricType, startDate, endDate, periodType);
+        }
+
+        return buildAnalyticsResponse(metricType, periodType, startDate, endDate, data);
+    }
+
+    @Cacheable(value = "analytics", key = "#companyId + '_overview'")
+    public Map<String, Object> getCompanyOverview(Long companyId) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(30);
+
+        Map<String, Object> overview = new HashMap<>();
         
-        AnalyticsOverviewDTO overview = new AnalyticsOverviewDTO();
+        // Active users
+        overview.put("dailyActiveUsers", getDailyActiveUsers(companyId, endDate, null));
+        overview.put("weeklyActiveUsers", getWeeklyActiveUsers(companyId, endDate, null));
+        overview.put("monthlyActiveUsers", getMonthlyActiveUsers(companyId, endDate, null));
         
-        // Platform Summary
-        overview.setTotalUsers(analytics.getTotalUsers());
-        overview.setActiveUsersToday(analytics.getActiveUsersToday());
-        overview.setNewUsersToday(analytics.getNewUsersToday());
-        overview.setUserGrowthRate(analytics.getUserGrowthRate());
+        // Engagement metrics
+        overview.put("totalConversations", getTotalConversations(companyId, startDate, endDate, null));
+        overview.put("totalVideoCalls", getTotalVideoCalls(companyId, startDate, endDate, null));
+        overview.put("averageSessionDuration", getAverageSessionDuration(companyId, startDate, endDate, null));
         
-        // Match Summary
-        overview.setTotalMatches(analytics.getTotalMatches());
-        overview.setMatchesCreatedToday(analytics.getMatchesCreatedToday());
-        overview.setMatchSuccessRate(analytics.getMatchSuccessRate());
-        overview.setMatchesCompletedToday(analytics.getMatchesCompletedToday());
+        // Gamification metrics
+        overview.put("badgesEarned", getBadgesEarned(companyId, startDate, endDate, null));
+        overview.put("streaksMaintained", getStreaksMaintained(companyId, startDate, endDate, null));
         
-        // Meeting Summary
-        overview.setMeetingsScheduledToday(analytics.getMeetingsScheduledToday());
-        overview.setMeetingsCompletedToday(analytics.getMeetingsCompletedToday());
-        overview.setMeetingCompletionRate(analytics.getMeetingCompletionRate());
-        overview.setAverageMeetingDuration(analytics.getAverageMeetingDuration());
-        
-        // Engagement Summary
-        overview.setTotalLounges(analytics.getTotalLounges());
-        overview.setActiveLoungestoday(analytics.getActiveLoungestoday());
-        overview.setMessagesSentToday(analytics.getMessagesSentToday());
-        overview.setAverageFeedbackRating(analytics.getAverageFeedbackRating());
-        
-        // Get trend data
-        List<PlatformAnalytics> trendData = platformAnalyticsRepository.findByDateBetweenOrderByDateDesc(thirtyDaysAgo, today);
-        overview.setUserGrowthTrend(createUserGrowthTrend(trendData));
-        overview.setMatchSuccessTrend(createMatchSuccessTrend(trendData));
-        overview.setEngagementTrend(createEngagementTrend(trendData));
-        
-        // Get top performers
-        overview.setMostActiveUsers(getMostActiveUsers(thirtyDaysAgo, today));
-        overview.setTopRatedUsers(getTopRatedUsers(thirtyDaysAgo, today));
+        // Growth metrics
+        overview.put("userGrowth", calculateUserGrowth(companyId, startDate, endDate));
+        overview.put("engagementGrowth", calculateEngagementGrowth(companyId, startDate, endDate));
         
         return overview;
     }
     
-    @Transactional(readOnly = true)
-    public UserInsightsDTO getUserInsights(Long userId) {
+    @Cacheable(value = "analytics", key = "#companyId + '_department_' + #departmentId")
+    public Map<String, Object> getDepartmentAnalytics(Long companyId, Long departmentId) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(30);
+
+        Map<String, Object> analytics = new HashMap<>();
+        
+        analytics.put("activeUsers", getDailyActiveUsers(companyId, endDate, departmentId));
+        analytics.put("engagement", getDepartmentEngagement(companyId, departmentId, startDate, endDate));
+        analytics.put("performance", getDepartmentPerformance(companyId, departmentId, startDate, endDate));
+        analytics.put("comparison", compareDepartmentToCompany(companyId, departmentId, startDate, endDate));
+
+        return analytics;
+    }
+
+    public void generateDailyAnalytics(Long companyId) {
         LocalDate today = LocalDate.now();
-        LocalDate thirtyDaysAgo = today.minusDays(30);
-        
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-        
-        User user = userOpt.get();
-        UserInsightsDTO insights = new UserInsightsDTO();
-        
-        // Basic user info
-        insights.setUserId(userId);
-        insights.setUserName(user.getName());
-        insights.setMemberSince(user.getCreatedAt().toLocalDate());
-        
-        // Get user analytics data
-        List<UserAnalytics> userAnalytics = userAnalyticsRepository.findByUserIdAndDateBetweenOrderByDateDesc(userId, thirtyDaysAgo, today);
-        
-        // Calculate aggregated metrics
-        calculateActivitySummary(insights, userAnalytics);
-        calculateMatchingPerformance(insights, userId, thirtyDaysAgo, today);
-        calculateCommunicationStats(insights, userAnalytics);
-        calculateMeetingPerformance(insights, userId, thirtyDaysAgo, today);
-        calculateCommunityEngagement(insights, userAnalytics);
-        calculateFeedbackRatings(insights, userId, thirtyDaysAgo, today);
-        calculateStreaksAndAchievements(insights, userId);
-        
-        // Generate trends
-        insights.setActivityTrend(createActivityTrend(userAnalytics));
-        insights.setWeeklyStats(createWeeklyStats(userAnalytics));
-        
-        // Generate insights and recommendations
-        insights.setInsights(generateUserInsights(insights));
-        insights.setRecommendations(generateUserRecommendations(insights));
-        insights.setEngagementLevel(calculateEngagementLevel(insights));
-        
-        return insights;
-    }
-    
-    @Scheduled(cron = "0 0 1 * * ?") // Run daily at 1 AM
-    @Transactional
-    public void generateDailyAnalytics() {
-        log.info("Starting daily analytics generation...");
-        
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-        
-        // Generate platform analytics
-        generatePlatformAnalytics(yesterday);
-        
-        // Generate user analytics
-        List<User> activeUsers = userRepository.findByIsActiveTrue();
-        for (User user : activeUsers) {
-            generateUserAnalytics(user.getId(), yesterday);
-        }
-        
-        log.info("Daily analytics generation completed");
-    }
-    
-    private void generatePlatformAnalytics(LocalDate date) {
-        PlatformAnalytics analytics = new PlatformAnalytics();
-        analytics.setDate(date);
-        
-        // Calculate user metrics
-        analytics.setTotalUsers(userRepository.count());
-        analytics.setNewUsersToday(userRepository.countByCreatedAtBetween(
-            date.atStartOfDay(), date.plusDays(1).atStartOfDay()));
-        analytics.setActiveUsersToday(userAnalyticsRepository.getActiveUsersForDate(date));
-        
-        // Calculate match metrics
-        analytics.setTotalMatches(matchRepository.count());
-        analytics.setMatchesCreatedToday(matchRepository.countByCreatedAtBetween(
-            date.atStartOfDay(), date.plusDays(1).atStartOfDay()));
-        
-        // Calculate meeting metrics
-        analytics.setMeetingsScheduledToday(scheduledMeetingRepository.countByCreatedAtBetween(
-            date.atStartOfDay(), date.plusDays(1).atStartOfDay()));
-        
-        // Calculate lounge metrics - TODO: implement when LoungeRepository is available
-        analytics.setTotalLounges(0L);
-        long messagesSent = 0;
-        
-        // Calculate rates and averages
-        calculatePlatformRates(analytics, date);
-        
-        platformAnalyticsRepository.save(analytics);
-    }
-    
-    private void generateUserAnalytics(Long userId, LocalDate date) {
-        UserAnalytics analytics = new UserAnalytics();
-        analytics.setUserId(userId);
-        analytics.setDate(date);
-        
-        // Calculate user-specific metrics for the date
-        LocalDateTime startOfDay = date.atStartOfDay();
-        LocalDateTime endOfDay = date.plusDays(1).atStartOfDay();
-        
-        // Get user interactions for the day
-        List<UserInteraction> interactions = userInteractionRepository.findByUserIdAndCreatedAtBetween(
-            userId, startOfDay, endOfDay);
-        
-        // Calculate metrics based on interactions
-        calculateUserMetricsFromInteractions(analytics, interactions);
-        
-        analytics.setMessagesSent(0);
-        
-        userAnalyticsRepository.save(analytics);
-    }
-    
-    private void calculateActivitySummary(UserInsightsDTO insights, List<UserAnalytics> userAnalytics) {
-        insights.setTotalLogins(userAnalytics.stream().mapToInt(UserAnalytics::getLoginCount).sum());
-        insights.setTotalSessionMinutes(userAnalytics.stream().mapToInt(UserAnalytics::getSessionDurationMinutes).sum());
-        insights.setTotalActionsPerformed(userAnalytics.stream().mapToInt(UserAnalytics::getActionsPerformed).sum());
-        
-        if (!userAnalytics.isEmpty()) {
-            insights.setAverageSessionDuration(insights.getTotalSessionMinutes() / userAnalytics.size());
+        LocalDate yesterday = today.minusDays(1);
+
+        // Generate analytics for all metrics
+        for (AnalyticsData.MetricType metricType : AnalyticsData.MetricType.values()) {
+            generateMetricAnalytics(companyId, null, metricType, yesterday, AnalyticsData.PeriodType.DAILY);
         }
     }
-    
-    private void calculateMatchingPerformance(UserInsightsDTO insights, Long userId, LocalDate startDate, LocalDate endDate) {
-        // Get match statistics from the database
-        Long matchesInitiated = matchRepository.countByUser1IdAndCreatedAtBetween(
-            userId, startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-        Long matchesReceived = matchRepository.countByUser2IdAndCreatedAtBetween(
-            userId, startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-        
-        insights.setTotalMatchesInitiated(matchesInitiated.intValue());
-        insights.setTotalMatchesReceived(matchesReceived.intValue());
-        
-        // Calculate success rates
-        if (insights.getTotalMatchesInitiated() > 0) {
-            insights.setMatchSuccessRate(
-                (double) insights.getTotalMatchesCompleted() / insights.getTotalMatchesInitiated() * 100);
+
+    public void generateWeeklyAnalytics(Long companyId) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(7);
+
+        for (AnalyticsData.MetricType metricType : AnalyticsData.MetricType.values()) {
+            generateMetricAnalytics(companyId, null, metricType, startDate, AnalyticsData.PeriodType.WEEKLY);
         }
     }
-    
-    private void calculateCommunicationStats(UserInsightsDTO insights, List<UserAnalytics> userAnalytics) {
-        insights.setTotalMessagesSent(userAnalytics.stream().mapToInt(UserAnalytics::getMessagesSent).sum());
-        insights.setTotalMessagesReceived(userAnalytics.stream().mapToInt(UserAnalytics::getMessagesReceived).sum());
-        insights.setConversationsStarted(userAnalytics.stream().mapToInt(UserAnalytics::getConversationsStarted).sum());
-    }
-    
-    private void calculateMeetingPerformance(UserInsightsDTO insights, Long userId, LocalDate startDate, LocalDate endDate) {
-        // Implementation for meeting performance calculation
-        insights.setTotalMeetingsScheduled(0);
-        insights.setTotalMeetingsAttended(0);
-        insights.setTotalMeetingMinutes(0);
-        insights.setMeetingAttendanceRate(0.0);
-    }
-    
-    private void calculateCommunityEngagement(UserInsightsDTO insights, List<UserAnalytics> userAnalytics) {
-        insights.setLoungesJoined(userAnalytics.stream().mapToInt(UserAnalytics::getLoungesJoined).sum());
-        insights.setLoungeMessagesPosted(userAnalytics.stream().mapToInt(UserAnalytics::getLoungeMessagesSent).sum());
-        insights.setLoungesCreated(userAnalytics.stream().mapToInt(UserAnalytics::getLoungesCreated).sum());
-        
-        // Calculate engagement score
-        double engagementScore = (insights.getLoungesJoined() * 1.0 + 
-                                 insights.getLoungeMessagesPosted() * 0.5 + 
-                                 insights.getLoungesCreated() * 2.0) / 10.0;
-        insights.setCommunityEngagementScore(Math.min(engagementScore, 10.0));
-    }
-    
-    private void calculateFeedbackRatings(UserInsightsDTO insights, Long userId, LocalDate startDate, LocalDate endDate) {
-        // Get feedback statistics
-        List<MatchFeedback> feedbackGiven = matchFeedbackRepository.findByUserIdAndCreatedAtBetween(
-            userId, startDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay());
-        
-        insights.setFeedbackGiven(feedbackGiven.size());
-        
-        if (!feedbackGiven.isEmpty()) {
-            double avgRating = feedbackGiven.stream()
-                .mapToInt(MatchFeedback::getQualityRating)
-                .average()
-                .orElse(0.0);
-            insights.setAverageRatingGiven(avgRating);
+
+    public void generateMonthlyAnalytics(Long companyId) {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(30);
+
+        for (AnalyticsData.MetricType metricType : AnalyticsData.MetricType.values()) {
+            generateMetricAnalytics(companyId, null, metricType, startDate, AnalyticsData.PeriodType.MONTHLY);
         }
     }
-    
-    private void calculateStreaksAndAchievements(UserInsightsDTO insights, Long userId) {
-        // TODO: Implement streak calculation when UserStreakRepository is available
-        // Set default values for now
-        insights.setCurrentLoginStreak(0);
-        insights.setLongestLoginStreak(0);
-        insights.setCurrentMatchStreak(0);
-    }
-    
-    private List<UserInsightsDTO.DailyActivityDTO> createActivityTrend(List<UserAnalytics> userAnalytics) {
-        return userAnalytics.stream()
-            .map(ua -> new UserInsightsDTO.DailyActivityDTO(
-                ua.getDate(),
-                ua.getLoginCount(),
-                ua.getActionsPerformed(),
-                ua.getMatchesInitiated(),
-                ua.getMessagesSent() + ua.getMessagesReceived()
-            ))
-            .collect(Collectors.toList());
-    }
-    
-    private List<UserInsightsDTO.WeeklyStatsDTO> createWeeklyStats(List<UserAnalytics> userAnalytics) {
-        // Group by weeks and calculate weekly statistics
-        return new ArrayList<>(); // Simplified for now
-    }
-    
-    private List<String> generateUserInsights(UserInsightsDTO insights) {
-        List<String> userInsights = new ArrayList<>();
-        
-        if (insights.getMatchSuccessRate() > 80) {
-            userInsights.add("You have an excellent match success rate! Your networking skills are paying off.");
-        }
-        
-        if (insights.getCurrentLoginStreak() > 7) {
-            userInsights.add("Great consistency! You've maintained a " + insights.getCurrentLoginStreak() + "-day login streak.");
-        }
-        
-        if (insights.getCommunityEngagementScore() > 7) {
-            userInsights.add("You're a highly engaged community member with strong participation in lounges.");
-        }
-        
-        return userInsights;
-    }
-    
-    private List<String> generateUserRecommendations(UserInsightsDTO insights) {
-        List<String> recommendations = new ArrayList<>();
-        
-        if (insights.getMatchSuccessRate() < 50) {
-            recommendations.add("Consider updating your profile to improve match compatibility.");
-        }
-        
-        if (insights.getLoungesJoined() < 3) {
-            recommendations.add("Join more topic lounges to expand your network and interests.");
-        }
-        
-        if (insights.getFeedbackGiven() == 0) {
-            recommendations.add("Provide feedback on your matches to help improve the platform.");
-        }
-        
-        return recommendations;
-    }
-    
-    private String calculateEngagementLevel(UserInsightsDTO insights) {
-        double score = 0;
-        
-        // Calculate engagement score based on various metrics
-        score += Math.min(insights.getTotalLogins() / 30.0, 1.0) * 25; // Login frequency
-        score += Math.min(insights.getMatchSuccessRate() / 100.0, 1.0) * 25; // Match success
-        score += Math.min(insights.getCommunityEngagementScore() / 10.0, 1.0) * 25; // Community engagement
-        score += Math.min(insights.getAverageRatingReceived() / 5.0, 1.0) * 25; // User rating
-        
-        if (score >= 80) return "VERY_HIGH";
-        if (score >= 60) return "HIGH";
-        if (score >= 40) return "MEDIUM";
-        return "LOW";
-    }
-    
-    // Helper methods for trend creation
-    private List<AnalyticsOverviewDTO.DailyMetricDTO> createUserGrowthTrend(List<PlatformAnalytics> trendData) {
-        return trendData.stream()
-            .map(pa -> new AnalyticsOverviewDTO.DailyMetricDTO(
-                pa.getDate(), 
-                pa.getUserGrowthRate(), 
-                "User Growth"
-            ))
-            .collect(Collectors.toList());
-    }
-    
-    private List<AnalyticsOverviewDTO.DailyMetricDTO> createMatchSuccessTrend(List<PlatformAnalytics> trendData) {
-        return trendData.stream()
-            .map(pa -> new AnalyticsOverviewDTO.DailyMetricDTO(
-                pa.getDate(), 
-                pa.getMatchSuccessRate(), 
-                "Match Success"
-            ))
-            .collect(Collectors.toList());
-    }
-    
-    private List<AnalyticsOverviewDTO.DailyMetricDTO> createEngagementTrend(List<PlatformAnalytics> trendData) {
-        return trendData.stream()
-            .map(pa -> new AnalyticsOverviewDTO.DailyMetricDTO(
-                pa.getDate(), 
-                pa.getUserInteractionsToday().doubleValue(), 
-                "User Interactions"
-            ))
-            .collect(Collectors.toList());
-    }
-    
-    private List<AnalyticsOverviewDTO.TopUserDTO> getMostActiveUsers(LocalDate startDate, LocalDate endDate) {
-        List<Object[]> results = userAnalyticsRepository.getMostActiveUsers(startDate, endDate);
-        return results.stream()
-            .limit(10)
-            .map(result -> {
-                Long userId = (Long) result[0];
-                Double totalActions = (Double) result[1];
-                Optional<User> user = userRepository.findById(userId);
-                return new AnalyticsOverviewDTO.TopUserDTO(
-                    userId,
-                    user.map(User::getName).orElse("Unknown"),
-                    totalActions,
-                    "Total Actions"
-                );
-            })
-            .collect(Collectors.toList());
-    }
-    
-    private List<AnalyticsOverviewDTO.TopUserDTO> getTopRatedUsers(LocalDate startDate, LocalDate endDate) {
-        List<Object[]> results = userAnalyticsRepository.getTopEngagedUsers(startDate, endDate);
-        return results.stream()
-            .limit(10)
-            .map(result -> {
-                Long userId = (Long) result[0];
-                Double avgScore = (Double) result[1];
-                Optional<User> user = userRepository.findById(userId);
-                return new AnalyticsOverviewDTO.TopUserDTO(
-                    userId,
-                    user.map(User::getName).orElse("Unknown"),
-                    avgScore,
-                    "Engagement Score"
-                );
-            })
-            .collect(Collectors.toList());
-    }
-    
-    private void calculatePlatformRates(PlatformAnalytics analytics, LocalDate date) {
-        // Calculate various rates and averages
-        if (analytics.getTotalMatches() > 0) {
-            analytics.setMatchSuccessRate(
-                (double) analytics.getMatchesCompletedToday() / analytics.getMatchesCreatedToday() * 100);
-        }
-        
-        if (analytics.getMeetingsScheduledToday() > 0) {
-            analytics.setMeetingCompletionRate(
-                (double) analytics.getMeetingsCompletedToday() / analytics.getMeetingsScheduledToday() * 100);
-        }
-    }
-    
-    private void calculateUserMetricsFromInteractions(UserAnalytics analytics, List<UserInteraction> interactions) {
-        int profileViews = 0;
-        int matchesAccepted = 0;
-        int matchesRejected = 0;
-        int messagesSent = 0;
-        int loungesJoined = 0;
-        int feedbackGiven = 0;
-        
-        // Count different types of interactions
-        for (UserInteraction interaction : interactions) {
-            switch (interaction.getInteractionType()) {
-                case PROFILE_VIEW:
-                    profileViews++;
-                    break;
-                case MATCH_ACCEPTED:
-                    matchesAccepted++;
-                    break;
-                case MATCH_REJECTED:
-                    matchesRejected++;
-                    break;
-                case MESSAGE_SENT:
-                    messagesSent++;
-                    break;
-                case LOUNGE_JOINED:
-                    loungesJoined++;
-                    break;
-                case FEEDBACK_GIVEN:
-                    feedbackGiven++;
-                    break;
-                case MEETING_COMPLETED:
-                    // Handle meeting completion
-                    break;
-                case SKILL_SEARCH:
-                    // Handle skill search
-                    break;
-                case INTEREST_SEARCH:
-                    // Handle interest search
-                    break;
+
+    private List<AnalyticsData> generateAnalyticsData(Long companyId, Long departmentId,
+                                                    AnalyticsData.MetricType metricType,
+                                                    LocalDate startDate, LocalDate endDate,
+                                                    AnalyticsData.PeriodType periodType) {
+        List<AnalyticsData> data = new ArrayList<>();
+        LocalDate currentDate = startDate;
+
+        while (!currentDate.isAfter(endDate)) {
+            AnalyticsData analyticsData = generateMetricAnalytics(companyId, departmentId, metricType, currentDate, periodType);
+            if (analyticsData != null) {
+                data.add(analyticsData);
             }
+            currentDate = currentDate.plusDays(1);
         }
+
+        return data;
+    }
+
+    private AnalyticsData generateMetricAnalytics(Long companyId, Long departmentId,
+                                               AnalyticsData.MetricType metricType,
+                                               LocalDate date, AnalyticsData.PeriodType periodType) {
         
-        analytics.setProfileViews(profileViews);
-        analytics.setMatchesAccepted(matchesAccepted);
-        analytics.setMatchesRejected(matchesRejected);
-        analytics.setMessagesSent(messagesSent);
-        analytics.setLoungesJoined(loungesJoined);
-        analytics.setFeedbackGiven(feedbackGiven);
+        Double metricValue = 0.0;
+        Integer metricCount = 0;
+
+        switch (metricType) {
+            case DAILY_ACTIVE_USERS:
+                metricValue = (double) getDailyActiveUsers(companyId, date, departmentId);
+                metricCount = getDailyActiveUsers(companyId, date, departmentId);
+                break;
+            case WEEKLY_ACTIVE_USERS:
+                metricValue = (double) getWeeklyActiveUsers(companyId, date, departmentId);
+                metricCount = getWeeklyActiveUsers(companyId, date, departmentId);
+                break;
+            case MONTHLY_ACTIVE_USERS:
+                metricValue = (double) getMonthlyActiveUsers(companyId, date, departmentId);
+                metricCount = getMonthlyActiveUsers(companyId, date, departmentId);
+                break;
+            case TOTAL_CONVERSATIONS:
+                metricValue = (double) getTotalConversations(companyId, date, date, departmentId);
+                metricCount = getTotalConversations(companyId, date, date, departmentId);
+                break;
+            case TOTAL_VIDEO_CALLS:
+                metricValue = (double) getTotalVideoCalls(companyId, date, date, departmentId);
+                metricCount = getTotalVideoCalls(companyId, date, date, departmentId);
+                break;
+            case AVERAGE_SESSION_DURATION:
+                metricValue = getAverageSessionDuration(companyId, date, date, departmentId);
+                metricCount = 1;
+                break;
+            case BADGES_EARNED:
+                metricValue = (double) getBadgesEarned(companyId, date, date, departmentId);
+                metricCount = getBadgesEarned(companyId, date, date, departmentId);
+                break;
+            case STREAKS_MAINTAINED:
+                metricValue = (double) getStreaksMaintained(companyId, date, date, departmentId);
+                metricCount = getStreaksMaintained(companyId, date, date, departmentId);
+                break;
+            default:
+                return null;
+        }
+
+        AnalyticsData analyticsData = new AnalyticsData(companyId, departmentId, metricType, 
+                                                      metricValue, metricCount, date, periodType);
+        return analyticsDataRepository.save(analyticsData);
+    }
+
+    private AnalyticsResponseDTO buildAnalyticsResponse(AnalyticsData.MetricType metricType,
+                                                      AnalyticsData.PeriodType periodType,
+                                                      LocalDate startDate, LocalDate endDate,
+                                                      List<AnalyticsData> data) {
         
-        analytics.setActionsPerformed(interactions.size());
+        List<AnalyticsResponseDTO.DataPoint> dataPoints = data.stream()
+                .map(d -> new AnalyticsResponseDTO.DataPoint(d.getDate(), d.getMetricValue(), 
+                                                           d.getMetricCount(), d.getDate().toString()))
+            .collect(Collectors.toList());
+
+        AnalyticsResponseDTO.Summary summary = calculateSummary(data);
+        
+        return new AnalyticsResponseDTO(metricType.name(), periodType.name(), 
+                                      startDate, endDate, dataPoints, summary);
+    }
+
+    private AnalyticsResponseDTO.Summary calculateSummary(List<AnalyticsData> data) {
+        if (data.isEmpty()) {
+            return new AnalyticsResponseDTO.Summary(0.0, 0, 0.0, 0.0, 0.0, 0.0, "stable");
+        }
+
+        Double totalValue = data.stream().mapToDouble(AnalyticsData::getMetricValue).sum();
+        Integer totalCount = data.stream().mapToInt(AnalyticsData::getMetricCount).sum();
+        Double averageValue = totalValue / data.size();
+        Double minValue = data.stream().mapToDouble(AnalyticsData::getMetricValue).min().orElse(0.0);
+        Double maxValue = data.stream().mapToDouble(AnalyticsData::getMetricValue).max().orElse(0.0);
+        
+        Double growthRate = calculateGrowthRate(data);
+        String trend = determineTrend(growthRate);
+
+        return new AnalyticsResponseDTO.Summary(totalValue, totalCount, averageValue, 
+                                             minValue, maxValue, growthRate, trend);
+    }
+
+    private Double calculateGrowthRate(List<AnalyticsData> data) {
+        if (data.size() < 2) return 0.0;
+        
+        AnalyticsData first = data.get(0);
+        AnalyticsData last = data.get(data.size() - 1);
+        
+        if (first.getMetricValue() == 0) return 0.0;
+        
+        return ((last.getMetricValue() - first.getMetricValue()) / first.getMetricValue()) * 100;
+    }
+
+    private String determineTrend(Double growthRate) {
+        if (growthRate > 5) return "increasing";
+        if (growthRate < -5) return "decreasing";
+        return "stable";
+    }
+
+    // Helper methods for specific metrics
+    private Integer getDailyActiveUsers(Long companyId, LocalDate date, Long departmentId) {
+        // Implementation would query user activity for the specific date
+        return userRepository.countByCompanyIdAndLastActiveDateBetween(
+                companyId, date.atStartOfDay(), date.atTime(23, 59, 59)).intValue();
+    }
+
+    private Integer getWeeklyActiveUsers(Long companyId, LocalDate date, Long departmentId) {
+        LocalDate weekStart = date.minusDays(6);
+        return userRepository.countByCompanyIdAndLastActiveDateBetween(
+                companyId, weekStart.atStartOfDay(), date.atTime(23, 59, 59)).intValue();
+    }
+
+    private Integer getMonthlyActiveUsers(Long companyId, LocalDate date, Long departmentId) {
+        LocalDate monthStart = date.minusDays(29);
+        return userRepository.countByCompanyIdAndLastActiveDateBetween(
+                companyId, monthStart.atStartOfDay(), date.atTime(23, 59, 59)).intValue();
+    }
+
+    private Integer getTotalConversations(Long companyId, LocalDate startDate, LocalDate endDate, Long departmentId) {
+        // Implementation would query conversation data
+        return 0; // Placeholder
+    }
+
+    private Integer getTotalVideoCalls(Long companyId, LocalDate startDate, LocalDate endDate, Long departmentId) {
+        // Implementation would query video call data
+        return 0; // Placeholder
+    }
+
+    private Double getAverageSessionDuration(Long companyId, LocalDate startDate, LocalDate endDate, Long departmentId) {
+        // Implementation would query session duration data
+        return 0.0; // Placeholder
+    }
+
+    private Integer getBadgesEarned(Long companyId, LocalDate startDate, LocalDate endDate, Long departmentId) {
+        // Implementation would query badge data
+        return 0; // Placeholder
+    }
+
+    private Integer getStreaksMaintained(Long companyId, LocalDate startDate, LocalDate endDate, Long departmentId) {
+        // Implementation would query streak data
+        return 0; // Placeholder
+    }
+
+    private Map<String, Object> getDepartmentEngagement(Long companyId, Long departmentId, LocalDate startDate, LocalDate endDate) {
+        Map<String, Object> engagement = new HashMap<>();
+        // Implementation would calculate department-specific engagement metrics
+        return engagement;
+    }
+
+    private Map<String, Object> getDepartmentPerformance(Long companyId, Long departmentId, LocalDate startDate, LocalDate endDate) {
+        Map<String, Object> performance = new HashMap<>();
+        // Implementation would calculate department-specific performance metrics
+        return performance;
+    }
+
+    private Map<String, Object> compareDepartmentToCompany(Long companyId, Long departmentId, LocalDate startDate, LocalDate endDate) {
+        Map<String, Object> comparison = new HashMap<>();
+        // Implementation would compare department metrics to company averages
+        return comparison;
+    }
+
+    private Double calculateUserGrowth(Long companyId, LocalDate startDate, LocalDate endDate) {
+        // Implementation would calculate user growth rate
+        return 0.0; // Placeholder
+    }
+
+    private Double calculateEngagementGrowth(Long companyId, LocalDate startDate, LocalDate endDate) {
+        // Implementation would calculate engagement growth rate
+        return 0.0; // Placeholder
     }
 }

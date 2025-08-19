@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -45,7 +46,19 @@ public class AuthService {
     }
     
     public UserProfileDto getCurrentUser() {
-        String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new RuntimeException("No authenticated user");
+        }
+        Object principal = authentication.getPrincipal();
+        String currentUserEmail;
+        if (principal instanceof UserDetails userDetails) {
+            currentUserEmail = userDetails.getUsername();
+        } else if (principal instanceof String s) {
+            currentUserEmail = s;
+        } else {
+            throw new RuntimeException("Unrecognized principal type: " + principal.getClass().getName());
+        }
         return userService.getUserProfileByEmail(currentUserEmail)
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
     }

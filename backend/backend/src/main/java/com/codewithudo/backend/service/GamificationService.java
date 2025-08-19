@@ -123,6 +123,53 @@ public class GamificationService {
                 .collect(Collectors.toList());
     }
     
+    /**
+     * Get leaderboard entries
+     */
+    public List<LeaderboardEntryDTO> getLeaderboard(int limit) {
+        List<Object[]> leaderboardData = activityLogRepository.getLeaderboardData(limit);
+        
+        return leaderboardData.stream()
+                .map(data -> {
+                    LeaderboardEntryDTO entry = new LeaderboardEntryDTO();
+                    entry.setUserId((Long) data[0]);
+                    entry.setUserName((String) data[1]);
+                    entry.setUserEmail((String) data[2]);
+                    entry.setTotalPoints((Integer) data[3]);
+                    entry.setTotalBadges((Long) data[4] != null ? ((Long) data[4]).intValue() : 0);
+                    entry.setLongestStreak((Integer) data[5]);
+                    entry.setLongestStreakType((String) data[6]);
+                    entry.setRank((Integer) data[7]);
+                    return entry;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get user's ranking
+     */
+    public Integer getUserRank(Long userId) {
+        return activityLogRepository.getUserRank(userId);
+    }
+    
+    /**
+     * Get top performers by category
+     */
+    public List<LeaderboardEntryDTO> getTopPerformersByCategory(String category, int limit) {
+        List<Object[]> topData = activityLogRepository.getTopPerformersByCategory(category, limit);
+        
+        return topData.stream()
+                .map(data -> {
+                    LeaderboardEntryDTO entry = new LeaderboardEntryDTO();
+                    entry.setUserId((Long) data[0]);
+                    entry.setUserName((String) data[1]);
+                    entry.setTotalPoints((Integer) data[2]);
+                    entry.setRank((Integer) data[3]);
+                    return entry;
+                })
+                .collect(Collectors.toList());
+    }
+    
     @Transactional
     public void resetInactiveStreaks() {
         List<UserStreak> allStreaks = userStreakRepository.findAll();
