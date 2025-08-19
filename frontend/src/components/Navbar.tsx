@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import NotificationBell from "./NotificationBell";
 import "./Navbar.css";
 
 const Navbar: React.FC = () => {
@@ -56,9 +57,13 @@ const Navbar: React.FC = () => {
                         <Link to="/insights" className="nav-link">
                             My Insights
                         </Link>
+                        <Link to="/search" className="nav-link">
+                            Search
+                        </Link>
                         <Link to="/profile" className="navbar-item">
                             Profile
                         </Link>
+                        <NotificationBell className="navbar-notification" />
                         <div className="navbar-user">
                             <span>Welcome, {user?.name}</span>
                             <button
